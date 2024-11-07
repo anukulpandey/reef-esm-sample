@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial="initial-scale=1.0">
+    <title>REEF Token contract balance</title>
+</head>
+<body>
+    <h1>REEF Token contract balance</h1>
+    <label for="contractAddress">Contract Address</label>
+    <input type="text" id="contractAddress" placeholder="Enter Contract Address" />
+    <br>
+    <br>
+    <label for="userAddress">EVM Address</label>
+    <input type="text" id="userAddress" placeholder="Enter EVM Address" />
+    <br>
+    <br>
+    <button id="getBalanceBtn">Get Token Balance</button>
+
+    <p id="balance">Token Balance: </p>
+
+    <script type="module">
+        import { WsProvider } from 'https://cdn.jsdelivr.net/npm/@polkadot/rpc-provider@14.2.3/+esm'
+        import { Provider } from 'https://cdn.jsdelivr.net/npm/@reef-chain/evm-provider@4.0.3/+esm';
+        import { Contract } from 'https://cdn.jsdelivr.net/npm/ethers@5.0.7/+esm'
+
+        const wsProvider = new WsProvider('wss://rpc-testnet.reefscan.com/ws');
+        const evmProvider = new Provider({
+            provider: wsProvider,
+        });
+
+        const abi = [{
+            "name": "balanceOf",
+            "type": "function",
+            "inputs": [
+                {
+                    "name": "account",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ],
+            "stateMutability": "view"
+        }];
+
+        document.getElementById('getBalanceBtn').addEventListener('click', async () => {
+            const contractAddress = document.getElementById('contractAddress').value;
+            const userAddress = document.getElementById('userAddress').value;
+
+            if (!contractAddress || !userAddress) {
+                alert('Please enter both contract address and user address.');
+                return;
+            }
+
+            try {
+                const contract = new Contract(contractAddress, abi, evmProvider);
+
+                const response = await contract.balanceOf(userAddress);
+
+                document.getElementById('balance').textContent = `Token Balance: ${response.toString()}`;
+            } catch (error) {
+                console.error('Error fetching balance:', error);
+                alert('Failed to fetch balance. Please check the addresses and try again.');
+            }
+        });
+    </script>
+</body>
+</html>
